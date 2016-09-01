@@ -63,10 +63,10 @@ public class QueueManager extends Thread {
 		CreateRoomSettings roomSettings = new CreateRoomSettings();
 		roomSettings.setName(user1.getName());
 		roomSettings.setMaxUsers(2);
-		roomSettings.setMaxVariablesAllowed(0);
+		roomSettings.setMaxVariablesAllowed(100);
 		roomSettings.setGame(true);
 		roomSettings.setDynamic(true);
-		roomSettings.setRoomSettings(EnumSet.of(SFSRoomSettings.USER_ENTER_EVENT, SFSRoomSettings.USER_EXIT_EVENT));
+		//roomSettings.setRoomSettings(EnumSet.of(SFSRoomSettings.USER_ENTER_EVENT, SFSRoomSettings.USER_EXIT_EVENT));
 		
 		RoomExtensionSettings extensionSettings = new RoomExtensionSettings("TagExtension", "tag.MainRoomExtension");
 		

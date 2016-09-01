@@ -4,12 +4,13 @@ import com.smartfoxserver.v2.core.SFSEventType;
 import com.smartfoxserver.v2.extensions.SFSExtension;
 
 import tag.game.Game;
+import tag.user.InputRequestHandler;
 import tag.user.UserJoinRoomHandler;
 import tag.user.UserLeaveRoomHandler;
 
 public class MainRoomExtension extends SFSExtension {
 
-	public Game game;
+	public Game game = null;
 	
 	@Override
 	public void init() {
@@ -18,7 +19,7 @@ public class MainRoomExtension extends SFSExtension {
 		addEventHandler(SFSEventType.USER_JOIN_ROOM, UserJoinRoomHandler.class);
 		addEventHandler(SFSEventType.USER_LEAVE_ROOM, UserLeaveRoomHandler.class);
 		
-		game = new Game(this.getParentRoom());
+		addRequestHandler("input", InputRequestHandler.class);
 		
 		trace("MainRoomExtension: initialization completed.");
 	}
@@ -28,13 +29,15 @@ public class MainRoomExtension extends SFSExtension {
 		trace("MainRoomExtension: destroying...");
 		super.destroy();
 		
-		game.interrupt();
-		try {
-			game.join();
-		} catch (InterruptedException e) {
-			trace(e);
+		if(game != null) {
+			game.interrupt();
+			try {
+				game.join();
+			} catch (InterruptedException e) {
+				trace(e);
+			}
 		}
-		
+			
 		trace("MainRoomExtension: destruction completed.");
 	}
 
