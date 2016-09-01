@@ -13,6 +13,8 @@ public class QuickPlayButton : MonoBehaviour {
         sfs.AddEventListener(SFSEvent.CONNECTION_LOST, OnConnectionLost);
         sfs.AddEventListener(SFSEvent.LOGIN, OnLogin);
         sfs.AddEventListener(SFSEvent.LOGIN_ERROR, OnLoginError);
+
+        sfs.AddEventListener(SFSEvent.ROOM_JOIN, OnRoomJoin);
     }
 
     void Reset()
@@ -65,5 +67,10 @@ public class QuickPlayButton : MonoBehaviour {
     {
         Debug.Log("Login error: " + evt.Params["errorMessage"] + " - Code: " + evt.Params["errorCode"]);
         sfs.Disconnect();
+    }
+
+    void OnRoomJoin(BaseEvent evt)
+    {
+        Debug.Log("Joined room!");
     }
 }

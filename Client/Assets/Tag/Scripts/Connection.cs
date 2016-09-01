@@ -69,10 +69,20 @@ public class Connection : MonoBehaviour
         return sfs;
     }
 
+    int count = 0;
+
     void FixedUpdate()
     {
         if (sfs != null)
             sfs.ProcessEvents();
+
+        count++;
+
+        if (count > 100)
+        {
+            count = 0;
+            Debug.Log(sfs.LastJoinedRoom);
+        }
     }
 
     void OnDestroy()
