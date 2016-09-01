@@ -14,16 +14,11 @@ import com.bulletphysics.dynamics.DiscreteDynamicsWorld;
 import com.bulletphysics.dynamics.character.KinematicCharacterController;
 import com.bulletphysics.linearmath.Transform;
 import com.smartfoxserver.v2.SmartFoxServer;
-import com.smartfoxserver.v2.api.ISFSMMOApi;
-import com.smartfoxserver.v2.entities.Room;
 import com.smartfoxserver.v2.entities.User;
 import com.smartfoxserver.v2.entities.data.SFSArray;
 import com.smartfoxserver.v2.entities.variables.SFSUserVariable;
 import com.smartfoxserver.v2.entities.variables.UserVariable;
 import com.smartfoxserver.v2.exceptions.SFSRuntimeException;
-import com.smartfoxserver.v2.exceptions.SFSVariableException;
-import com.smartfoxserver.v2.mmo.Vec3D;
-
 import tag.user.InputRequestHandler;
 
 public class Player {
@@ -31,7 +26,6 @@ public class Player {
 	private User sfsUser;
 	private KinematicCharacterController controller;
 	private PairCachingGhostObject ghostObject;
-	private Integer physicsCount = 0;
 	
 	private Boolean[] input = new Boolean[]{false, false, false, false, false};
 	
@@ -116,33 +110,7 @@ public class Player {
 			System.out.println(e);
 		}
 	}
-	
-	/*public void updateMmoPosition() {
-		Room room = sfsUser.getLastJoinedRoom();
-		
-		try {
-			ISFSMMOApi mmoApi = SmartFoxServer.getInstance().getAPIManager().getMMOApi();
-			
-			Vector3f position = getPosition();
-			
-			mmoApi.setUserPosition(sfsUser, new Vec3D(position.x, position.y, position.z), room);
-			
-			SFSArray posData = new SFSArray();
-			posData.addFloat(position.x);
-			posData.addFloat(position.y);
-			posData.addFloat(position.z);
-			
-			UserVariable pos = new SFSUserVariable("pos", posData);
-			UserVariable physicsCount = new SFSUserVariable("physicsCount", this.physicsCount++);
-			
-			SmartFoxServer.getInstance().getAPIManager().getSFSApi().setUserVariables(sfsUser, Arrays.asList(pos, physicsCount));
-		}
-		catch(SFSRuntimeException ex) {
-			System.out.println(ex.toString());
-			System.out.println("Room: "+room);
-		}
-	}*/
-	
+
 	public User getSfsUser() {
 		return sfsUser;
 	}

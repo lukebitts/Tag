@@ -1,10 +1,7 @@
 package tag;
 
-import java.util.EnumSet;
-
 import com.smartfoxserver.v2.api.CreateRoomSettings;
 import com.smartfoxserver.v2.api.CreateRoomSettings.RoomExtensionSettings;
-import com.smartfoxserver.v2.entities.SFSRoomSettings;
 import com.smartfoxserver.v2.entities.User;
 import com.smartfoxserver.v2.exceptions.SFSCreateRoomException;
 import com.smartfoxserver.v2.exceptions.SFSJoinRoomException;

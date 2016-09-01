@@ -42,20 +42,5 @@ public class PlayerInput : MonoBehaviour
             sfs.Send(new Sfs2X.Requests.ExtensionRequest("input.setInput", param, sfs.LastJoinedRoom));
         }
 
-        /*Vector3 pos = transform.position;
-
-        int x = input[INPUT_TYPE.LEFT] ? -1 : input[INPUT_TYPE.RIGHT] ? 1 : 0;
-        int z = input[INPUT_TYPE.FORWARD] ? 1 : input[INPUT_TYPE.BACKWARD] ? -1 : 0;
-
-        float speed = 8.0f * Time.deltaTime;
-        float div = 1.0f;
-        if (x != 0 && z != 0)
-            div = 1.41f;
-
-        pos.x += x / div * speed;
-        pos.z += z / div * speed;
-
-        transform.position = pos;*/
-
     }
 }

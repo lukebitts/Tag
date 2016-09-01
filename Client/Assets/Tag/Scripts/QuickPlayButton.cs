@@ -57,8 +57,6 @@ public class QuickPlayButton : MonoBehaviour {
         }
         else
         {
-            string connectionErrorReason = (string)evt.Params["errorMessage"];
-            
             popup.Show("ERROR CONNECTING TO SERVER", "Something went wrong while we tried to connect you, please try again.", true, 0, popup.Hide);
 
             Reset();

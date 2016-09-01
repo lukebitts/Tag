@@ -82,7 +82,7 @@ public class Game extends Thread {
 	}
 	
 	private void spawnFloor() {
-		CollisionShape groundShape = new BoxShape(new Vector3f(50, 3, 50));//new StaticPlaneShape(new Vector3f(0, 1, 0), 1);
+		CollisionShape groundShape = new BoxShape(new Vector3f(50, 3, 50));
 		Transform groundTransform = new Transform();
 		groundTransform.setRotation(new Quat4f(0.f, 0.f, 0.f, 1.f));
 		groundTransform.origin.set(new float[] { 0, -1, 0 });

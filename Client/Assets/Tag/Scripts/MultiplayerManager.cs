@@ -33,7 +33,6 @@ public class MultiplayerManager : MonoBehaviour
 #else
         sfs = Connection.Instance().Sfs();
 #endif
-        sfs.AddEventListener(SFSEvent.PROXIMITY_LIST_UPDATE, OnProximityListUpdate);
         sfs.AddEventListener(SFSEvent.USER_VARIABLES_UPDATE, OnUserVariablesUpdate);
         sfs.AddEventListener(SFSEvent.CONNECTION_LOST, OnConnectionLost);
 
@@ -71,54 +70,12 @@ public class MultiplayerManager : MonoBehaviour
             newPosition.y = pos.GetFloat(1);
             newPosition.z = pos.GetFloat(2);
 
-            Vector3 linearVelocity = new Vector3();
-            /*linearVelocity.x = (float)user.GetVariable("lx").GetDoubleValue();
-            linearVelocity.y = (float)user.GetVariable("ly").GetDoubleValue();
-            linearVelocity.z = (float)user.GetVariable("lz").GetDoubleValue();*/
-
-            //int physicsCount = user.GetVariable("physicsCount").GetIntValue();
-
-            /*Interpolation i = playerGo.GetComponent<Interpolation>();
-            if (i.physicsCount < physicsCount)
-            {
-                i.physicsCount = physicsCount;
-                i.linearVelocity = linearVelocity;
-                playerGo.transform.position = newPosition;
-            }*/
             playerGo.transform.position = newPosition;
-        }
-    }
-
-    private void OnProximityListUpdate(BaseEvent evt)
-    {
-        var added = evt.Params["addedUsers"] as List<User>;
-        var removed = evt.Params["removedUsers"] as List<User>;
-
-        foreach (User user in added)
-        {
-            var entryPoint = user.AOIEntryPoint;
-
-            GameObject playerGo = Instantiate(networkPlayerPrefab, new Vector3(entryPoint.FloatX, entryPoint.FloatY, entryPoint.FloatZ), Quaternion.identity) as GameObject;
-            user.Properties.Add("GameObject", playerGo);
-
-            users.Add(user.Id, user);
-        }
-
-        foreach (User user in removed)
-        {
-            object playerObj;
-            user.Properties.TryGetValue("GameObject", out playerObj);
-
-            GameObject playerGo = playerObj as GameObject;
-            DestroyImmediate(playerGo);
-
-            users.Remove(user.Id);
         }
     }
 
     void OnConnectionLost(BaseEvent evt)
     {
-        sfs.RemoveEventListener(SFSEvent.PROXIMITY_LIST_UPDATE, OnProximityListUpdate);
         sfs.RemoveEventListener(SFSEvent.USER_VARIABLES_UPDATE, OnUserVariablesUpdate);
         sfs.RemoveEventListener(SFSEvent.CONNECTION_LOST, OnConnectionLost);
 
