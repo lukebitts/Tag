@@ -7,6 +7,8 @@ public class QuickPlayButton : MonoBehaviour {
 
     SmartFox sfs;
 
+    public Popup popup;
+
     void SetupListeners()
     {
         sfs.AddEventListener(SFSEvent.CONNECTION, OnConnection);
@@ -30,7 +32,15 @@ public class QuickPlayButton : MonoBehaviour {
 
     public void OnClick()
     {
+        popup.Show("CONNECTING TO SERVER", "Please wait while we try to find a match for you", true, 0, CancelConnection);
+
         sfs.Connect("127.0.0.1", 9933);
+    }
+
+    void CancelConnection()
+    {
+        popup.Hide();
+        sfs.KillConnection();
     }
 
     void OnConnection(BaseEvent evt)
@@ -41,10 +51,16 @@ public class QuickPlayButton : MonoBehaviour {
 
         if (connectionSuccess)
         {
+            popup.Show("LOGIN AS GUEST REQUESTED", "Please wait while we try to find a match for you", true, 0, CancelConnection);
+
             sfs.Send(new Sfs2X.Requests.LoginRequest("", "", "Lobby"));
         }
         else
         {
+            string connectionErrorReason = (string)evt.Params["errorMessage"];
+            
+            popup.Show("ERROR CONNECTING TO SERVER", "Something went wrong while we tried to connect you, please try again.", true, 0, popup.Hide);
+
             Reset();
         }
     }
@@ -59,18 +75,26 @@ public class QuickPlayButton : MonoBehaviour {
 
     void OnLogin(BaseEvent evt)
     {
+        popup.Show("WAITING IN QUEUE FOR A MATCH", "Please wait while we try to find a match for you", true, 0, CancelConnection);
+
         var user = (Sfs2X.Entities.User)evt.Params["user"];
         Debug.Log("Login success. " + user.Name);
     }
 
     void OnLoginError(BaseEvent evt)
     {
+        popup.Show("ERROR IN GUEST LOGIN", "Something went wrong while we tried to login you as a guest, please try again.", true, 0, popup.Hide);
+
         Debug.Log("Login error: " + evt.Params["errorMessage"] + " - Code: " + evt.Params["errorCode"]);
         sfs.Disconnect();
     }
 
     void OnRoomJoin(BaseEvent evt)
     {
-        Debug.Log("Joined room!");
+        popup.Show("MATCH FOUND", "Please wait as your game starts.", false, -1, null);
+
+        ChangeSceneAfterSeconds c = gameObject.AddComponent<ChangeSceneAfterSeconds>();
+        c.seconds = 3;
+        c.sceneName = "Game";
     }
 }
