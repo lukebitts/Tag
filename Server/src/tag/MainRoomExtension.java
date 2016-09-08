@@ -34,7 +34,7 @@ public class MainRoomExtension extends SFSExtension {
 			try {
 				game.join();
 			} catch (InterruptedException e) {
-				trace(e);
+				e.printStackTrace();
 			}
 		}
 			

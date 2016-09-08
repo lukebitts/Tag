@@ -22,7 +22,6 @@ public class MainZoneExtension extends SFSExtension {
 		addEventHandler(SFSEventType.USER_JOIN_ZONE, UserJoinZoneHandler.class);
 		addEventHandler(SFSEventType.USER_DISCONNECT, UserDisconnectHandler.class);
 		
-		//userQueue = new ConcurrentLinkedQueue<Integer>();
 		userQueue = new LinkedBlockingQueue<Integer>();
 		
 		queueManager = new QueueManager(this);
@@ -39,7 +38,9 @@ public class MainZoneExtension extends SFSExtension {
 		queueManager.interrupt();
 		try {
 			queueManager.join();
-		} catch (InterruptedException e) {}
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 		
 		trace("MainZoneExtension: destruction completed.");
 	}

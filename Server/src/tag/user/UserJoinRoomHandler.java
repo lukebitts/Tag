@@ -13,6 +13,7 @@ import com.smartfoxserver.v2.exceptions.SFSException;
 import com.smartfoxserver.v2.extensions.BaseServerEventHandler;
 
 import tag.MainRoomExtension;
+import tag.QueueManager;
 import tag.game.Game;
 
 public class UserJoinRoomHandler extends BaseServerEventHandler {
@@ -21,19 +22,25 @@ public class UserJoinRoomHandler extends BaseServerEventHandler {
 	public void handleServerEvent(ISFSEvent event) throws SFSException {
 		User user = (User)event.getParameter(SFSEventParam.USER);
 		trace(String.format("User '%s' (%s) joined room.",user.getName(), user.getId()));
+			
+		MainRoomExtension ext = (MainRoomExtension)getParentExtension();
 		
-		if(getParentExtension().getParentRoom().getUserList().size() == 1) {
-			
-			MainRoomExtension ext = (MainRoomExtension)getParentExtension();
-			
-			SFSArray posData = new SFSArray();
-			posData.addFloat(0.f);
-			posData.addFloat(50.f);
-			posData.addFloat(0.f);
-			
-			UserVariable pos = new SFSUserVariable("pos", posData);
-			SmartFoxServer.getInstance().getAPIManager().getSFSApi().setUserVariables(user, Arrays.asList(pos));
-			
+		SFSArray posData = new SFSArray();
+		posData.addFloat(0.f);
+		posData.addFloat(25.f);
+		posData.addFloat(0.f);
+		
+		SFSArray oriData = new SFSArray();
+		posData.addFloat(0.f);
+		posData.addFloat(0.f);
+		posData.addFloat(0.f);
+		posData.addFloat(1.f);
+		
+		UserVariable pos = new SFSUserVariable("pos", posData);
+		UserVariable ori = new SFSUserVariable("ori", oriData);
+		SmartFoxServer.getInstance().getAPIManager().getSFSApi().setUserVariables(user, Arrays.asList(pos, ori));
+		
+		if(getParentExtension().getParentRoom().getUserList().size() == QueueManager.USERS_NEEDED_FOR_GAME) {
 			ext.game = new Game(ext.getParentRoom());
 			ext.game.start();
 		}

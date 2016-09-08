@@ -1,14 +1,19 @@
 package tag;
 
+import java.util.ArrayList;
+
 import com.smartfoxserver.v2.api.CreateRoomSettings;
 import com.smartfoxserver.v2.api.CreateRoomSettings.RoomExtensionSettings;
 import com.smartfoxserver.v2.entities.User;
+import com.smartfoxserver.v2.entities.data.SFSObject;
 import com.smartfoxserver.v2.exceptions.SFSCreateRoomException;
 import com.smartfoxserver.v2.exceptions.SFSJoinRoomException;
 
 public class QueueManager extends Thread {
 	
 	MainZoneExtension ext;
+	
+	public static final int USERS_NEEDED_FOR_GAME = 2; 
 	
 	public QueueManager(MainZoneExtension ext) {
 		this.ext = ext;
@@ -20,46 +25,56 @@ public class QueueManager extends Thread {
 			try {
 				Thread.sleep(2000);
 			} catch (InterruptedException e) {
-				
+				//e.printStackTrace();
+				//This means the game isn't running anymore
+				break;
 			}
 			
-			//if(this.ext.userQueue.size() >= 1) {
 			try {
-				Integer userId = this.ext.userQueue.take();
-				
-				if(userId != null) {
-					User user1 = this.ext.getApi().getUserById(userId);
+				ArrayList<User> users = new ArrayList<User>();
+				if(this.ext.userQueue.size() >= USERS_NEEDED_FOR_GAME) {
+					while(users.size() < USERS_NEEDED_FOR_GAME) {
+						users.add(this.ext.getApi().getUserById(this.ext.userQueue.take()));
+					}
 					
-					//User user2 = this.ext.getApi().getUserById(this.ext.userQueue.remove());
-					
-					ext.trace(String.format("Got enough users for a game! (%s)", user1.getName()));
+					ext.trace(String.format("Got enough (%s) users for a game!", USERS_NEEDED_FOR_GAME));
 					
 					try {
-						startGame(user1, null);
+						startGame(users);
 					}
 					catch(SFSCreateRoomException e) {
-						this.ext.userQueue.add(user1.getId());
-						//this.ext.userQueue.add(user2.getId());
+						for(User u : users) {
+							if(u.isConnected())
+								this.ext.userQueue.add(u.getId());
+						}
 						
-						ext.trace(e);
+						e.printStackTrace();
 					}
 					catch(SFSJoinRoomException e) {
-						this.ext.userQueue.add(user1.getId());
+						for(User u : users) {
+							if(u.isConnected())
+								this.ext.userQueue.add(u.getId());
+						}
 						
-						ext.trace(e);
+						e.printStackTrace();
 					}
 				}
 			} catch (InterruptedException e) {
-				ext.trace(e);
+				//This means the userQueue is not available anymore, so we stop this thread
+				break;
 			}
 		}
 	}
 	
-	void startGame(User user1, User user2) throws SFSCreateRoomException, SFSJoinRoomException {
+	void startGame(ArrayList<User> users) throws SFSCreateRoomException, SFSJoinRoomException {
+		
+		if(users.size() != USERS_NEEDED_FOR_GAME) {
+			throw new RuntimeException("Got a list of users with the wrong number of players");
+		}
 		
 		CreateRoomSettings roomSettings = new CreateRoomSettings();
-		roomSettings.setName(user1.getName());
-		roomSettings.setMaxUsers(2);
+		roomSettings.setName(users.get(0).getName());
+		roomSettings.setMaxUsers(USERS_NEEDED_FOR_GAME);
 		roomSettings.setMaxVariablesAllowed(100);
 		roomSettings.setGame(true);
 		roomSettings.setDynamic(true);
@@ -69,9 +84,11 @@ public class QueueManager extends Thread {
 		
 		roomSettings.setExtension(extensionSettings);
 		
-		ext.getApi().createRoom(ext.getParentZone(), roomSettings, user1, true, null, true, true);
-		//room.getUserManager().addUser(user1);
-		//room.addUser(user1);
+		ext.getApi().createRoom(ext.getParentZone(), roomSettings, null, true, null, true, true);
+
+		SFSObject message = new SFSObject();
+		message.putUtfString("room_name", roomSettings.getName());
+		this.ext.send("game_found", message, users);
 	}
 	
 	@Override

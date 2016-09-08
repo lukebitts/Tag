@@ -15,6 +15,9 @@ public class MultiplayerManager : MonoBehaviour
     public GameObject playerPrefab;
     public GameObject networkPlayerPrefab;
 
+    public ChaserCamera chaserCamera;
+    public RuntimeAnimatorController animatorController;
+
     SmartFox sfs;
     Dictionary<int, User> users = new Dictionary<int, User>();
 
@@ -35,17 +38,61 @@ public class MultiplayerManager : MonoBehaviour
 #endif
         sfs.AddEventListener(SFSEvent.USER_VARIABLES_UPDATE, OnUserVariablesUpdate);
         sfs.AddEventListener(SFSEvent.CONNECTION_LOST, OnConnectionLost);
+        sfs.AddEventListener(SFSEvent.USER_ENTER_ROOM, OnUserEnterRoom);
+        sfs.AddEventListener(SFSEvent.EXTENSION_RESPONSE, OnExtensionResponse);
 
         ISFSArray pos = sfs.MySelf.GetVariable("pos").GetSFSArrayValue();
+        ISFSArray ori = sfs.MySelf.GetVariable("ori").GetSFSArrayValue();
 
-        GameObject playerGo = Instantiate(playerPrefab, new Vector3(pos.GetFloat(0), pos.GetFloat(1), pos.GetFloat(2)), Quaternion.identity) as GameObject;
+        GameObject playerGo = Instantiate(playerPrefab, 
+            new Vector3(pos.GetFloat(0), pos.GetFloat(1) - 1.0f, pos.GetFloat(2)), 
+            new Quaternion(ori.GetFloat(0), ori.GetFloat(2), ori.GetFloat(2), ori.GetFloat(3)))
+            as GameObject;
+        playerGo.AddComponent<PlayerInput>();
+        playerGo.AddComponent<PlayerInterpolation>();
+
+        playerGo.GetComponent<Animator>().runtimeAnimatorController = animatorController;
+
         sfs.MySelf.Properties.Add("GameObject", playerGo);
         users.Add(sfs.MySelf.Id, sfs.MySelf);
-    }
 
+        chaserCamera.target = playerGo.transform;
+
+        foreach(SFSUser u in sfs.LastJoinedRoom.UserList)
+        {
+            if(!u.IsItMe)
+                UserEnterRoom(u);
+        }
+    }
     void Update()
     {
 
+    }
+
+    private void OnUserEnterRoom(BaseEvent evt)
+    {
+        SFSUser user = (SFSUser)evt.Params["user"];
+        UserEnterRoom(user);
+    }
+
+    private void UserEnterRoom(SFSUser user)
+    {       
+        ISFSArray pos = user.GetVariable("pos").GetSFSArrayValue();
+        ISFSArray ori = user.GetVariable("ori").GetSFSArrayValue();
+
+        GameObject playerGo = Instantiate(playerPrefab,
+            new Vector3(pos.GetFloat(0), pos.GetFloat(1) - 1.0f, pos.GetFloat(2)),
+            new Quaternion(ori.GetFloat(0), ori.GetFloat(2), ori.GetFloat(2), ori.GetFloat(3)))
+            as GameObject;
+        //playerGo.AddComponent<PlayerInput>();
+        playerGo.AddComponent<PlayerInterpolation>();
+
+        playerGo.GetComponent<Animator>().runtimeAnimatorController = animatorController;
+
+        user.Properties.Add("GameObject", playerGo);
+        users.Add(user.Id, user);
+
+        //chaserCamera.target = playerGo.transform;
     }
 
     private void OnUserVariablesUpdate(BaseEvent evt)
@@ -67,10 +114,50 @@ public class MultiplayerManager : MonoBehaviour
             Vector3 newPosition = new Vector3();
             ISFSArray pos = user.GetVariable("pos").GetSFSArrayValue();
             newPosition.x = pos.GetFloat(0);
-            newPosition.y = pos.GetFloat(1);
+            newPosition.y = pos.GetFloat(1) - 1.0f;
             newPosition.z = pos.GetFloat(2);
 
-            playerGo.transform.position = newPosition;
+            var pi = playerGo.GetComponent<PlayerInterpolation>();
+            pi.latestPosition = newPosition;
+        }
+
+        if (changedVars.Contains("ori"))
+        {
+            GameObject playerGo = user.Properties["GameObject"] as GameObject;
+
+            Quaternion newOrientation = new Quaternion();
+            ISFSArray ori = user.GetVariable("ori").GetSFSArrayValue();
+            newOrientation.x = ori.GetFloat(0);
+            newOrientation.y = ori.GetFloat(1);
+            newOrientation.z = ori.GetFloat(2);
+            newOrientation.w = ori.GetFloat(3);
+
+            var pi = playerGo.GetComponent<PlayerInterpolation>();
+            pi.latestOrientation = newOrientation;
+        }
+
+        if (changedVars.Contains("turning"))
+        {
+            GameObject playerGo = user.Properties["GameObject"] as GameObject;
+
+            Boolean turning = user.GetVariable("turning").GetBoolValue();
+
+            var pi = playerGo.GetComponent<PlayerInterpolation>();
+            pi.turning = turning;
+        }
+    }
+
+    private void OnExtensionResponse(BaseEvent evt)
+    {
+        string cmd = evt.Params["cmd"] as string;
+
+        if (cmd == "game_start")
+        {
+            Debug.LogWarning("GAME STARTED");
+        }
+        else
+        {
+            Debug.LogWarning("Unrecognized command received: " + cmd);
         }
     }
 

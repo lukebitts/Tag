@@ -2,6 +2,7 @@
 using Sfs2X;
 using Sfs2X.Core;
 using Sfs2X.Entities.Data;
+using System.Collections;
 
 public class QuickPlayButton : MonoBehaviour {
 
@@ -17,6 +18,7 @@ public class QuickPlayButton : MonoBehaviour {
         sfs.AddEventListener(SFSEvent.LOGIN_ERROR, OnLoginError);
 
         sfs.AddEventListener(SFSEvent.ROOM_JOIN, OnRoomJoin);
+        sfs.AddEventListener(SFSEvent.EXTENSION_RESPONSE, OnExtensionResponse);
     }
 
     void Reset()
@@ -87,12 +89,37 @@ public class QuickPlayButton : MonoBehaviour {
         sfs.Disconnect();
     }
 
+    void OnExtensionResponse(BaseEvent evt)
+    {
+        string cmd = evt.Params["cmd"] as string;
+
+        if(cmd == "game_found")
+        {
+            SFSObject message = evt.Params["params"] as SFSObject;
+            string roomName = message.GetUtfString("room_name");
+
+            sfs.Send(new Sfs2X.Requests.JoinRoomRequest(roomName));
+        }
+        else
+        {
+            Debug.LogWarning("Unrecognized command received: " + cmd);
+        }
+    }
+
     void OnRoomJoin(BaseEvent evt)
     {
         popup.Show("MATCH FOUND", "Please wait as your game starts.", false, -1, null);
 
+        sfs.RemoveEventListener(SFSEvent.CONNECTION, OnConnection);
+        sfs.RemoveEventListener(SFSEvent.CONNECTION_LOST, OnConnectionLost);
+        sfs.RemoveEventListener(SFSEvent.LOGIN, OnLogin);
+        sfs.RemoveEventListener(SFSEvent.LOGIN_ERROR, OnLoginError);
+
+        sfs.RemoveEventListener(SFSEvent.ROOM_JOIN, OnRoomJoin);
+        sfs.RemoveEventListener(SFSEvent.EXTENSION_RESPONSE, OnExtensionResponse);
+
         ChangeSceneAfterSeconds c = gameObject.AddComponent<ChangeSceneAfterSeconds>();
-        c.seconds = 3;
+        c.seconds = 0;
         c.sceneName = "Game";
     }
 }
